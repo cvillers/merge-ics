@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Annotated
+from uuid import uuid4
 
 from icalendar import Calendar
 from typer import Argument, Option, Typer
@@ -21,11 +22,26 @@ def main(
         print(f"Adding {in_file.name}")
         in_cal = Calendar.from_ical(in_file, False)
         if i == 0:
+            # Get global fields from the first file
             merged_cal.calendar_name = in_cal.calendar_name
             merged_cal.calscale = in_cal.calscale
+            merged_cal.version = in_cal.version
+            merged_cal.method = in_cal.method
+            merged_cal.timezones.extend(in_cal.timezones)
         for ev in in_cal.events:
+            if "BYE" in ev.summary:
+                # Skip these weeks
+                continue
+            # Reset some fields
+            # uid seems to be identical in all files, so rewrite
+            ev.uid = str(uuid4())
+            # Rewrite location for Google Calendar to parse
             ev.location = location
+            # Clear unneeded fields
             ev.description = None
+            ev.organizer = None
+            ev.alarms.times.clear()
+            # And add it
             merged_cal.add_component(ev.copy(True))
     print(merged_cal)
 

@@ -43,9 +43,10 @@ def main(
             ev.alarms.times.clear()
             # And add it
             merged_cal.add_component(ev.copy(True))
-    print(merged_cal)
+    # print(merged_cal)
 
     out_file = directory / "merged.ics"
+    print(f"Writing to {out_file}")
     out_file.write_bytes(merged_cal.to_ical())
 
 
